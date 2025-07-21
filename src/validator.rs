@@ -1,8 +1,7 @@
-
-use idna::domain_to_ascii;
 use crate::constants::*;
+use crate::ip::{fast_ip_precheck, ValidateIp};
 use crate::types::ValidationResult;
-use crate::ip::{ValidateIp, fast_ip_precheck};
+use idna::domain_to_ascii;
 
 static USER_CHAR_TABLE: [bool; 256] = {
     let mut table = [false; 256];
@@ -72,7 +71,7 @@ impl EmailValidator {
             if byte > 127 || !Self::is_user_char(byte) {
                 return false;
             }
-            
+
             if byte == b'.' {
                 if prev_was_dot {
                     return false;
@@ -82,7 +81,7 @@ impl EmailValidator {
                 prev_was_dot = false;
             }
         }
-        
+
         true
     }
 
@@ -92,18 +91,18 @@ impl EmailValidator {
         if len == 0 || len > MAX_USER_LENGTH {
             return false;
         }
-        
+
         if bytes[0] == b'.' || bytes[len - 1] == b'.' {
             return false;
         }
-        
+
         if len < 8 {
             return Self::validate_user_part_slow_path(bytes);
         }
-        
+
         let mut prev_was_dot = false;
         let (chunks, remainder) = bytes.split_at(len & !7);
-        
+
         for chunk in chunks.chunks_exact(8) {
             unsafe {
                 let chunk_u64 = u64::from_ne_bytes(chunk.try_into().unwrap_unchecked());
@@ -111,12 +110,12 @@ impl EmailValidator {
                     return false;
                 }
             }
-            
+
             for &byte in chunk {
                 if !Self::is_user_char(byte) {
                     return false;
                 }
-                
+
                 if byte == b'.' {
                     if prev_was_dot {
                         return false;
@@ -127,12 +126,12 @@ impl EmailValidator {
                 }
             }
         }
-        
+
         for &byte in remainder {
             if byte > 127 || !Self::is_user_char(byte) {
                 return false;
             }
-            
+
             if byte == b'.' {
                 if prev_was_dot {
                     return false;
@@ -142,14 +141,14 @@ impl EmailValidator {
                 prev_was_dot = false;
             }
         }
-        
+
         true
     }
 
     #[inline]
     fn validate_domain_label(label: &[u8]) -> ValidationResult {
         let len = label.len();
-        
+
         if len == 0 || len > MAX_LABEL_LENGTH {
             return ValidationResult::Invalid;
         }
@@ -169,7 +168,7 @@ impl EmailValidator {
 
         let middle = unsafe { label.get_unchecked(1..len - 1) };
         let mut has_non_ascii = false;
-        
+
         for &byte in middle {
             if byte > 127 {
                 has_non_ascii = true;
@@ -206,7 +205,7 @@ impl EmailValidator {
                     if i == start {
                         return ValidationResult::Invalid;
                     }
-                    
+
                     let label_result = Self::validate_domain_label(bytes.get_unchecked(start..i));
                     match label_result {
                         ValidationResult::Invalid => return ValidationResult::Invalid,
@@ -220,7 +219,8 @@ impl EmailValidator {
         }
 
         if start < len {
-            let final_label_result = unsafe { Self::validate_domain_label(bytes.get_unchecked(start..)) };
+            let final_label_result =
+                unsafe { Self::validate_domain_label(bytes.get_unchecked(start..)) };
             match final_label_result {
                 ValidationResult::Invalid => return ValidationResult::Invalid,
                 ValidationResult::RequiresIdnCheck => requires_idn = true,
@@ -243,18 +243,18 @@ impl EmailValidator {
     #[inline]
     fn validate_ip_literal(bytes: &[u8]) -> bool {
         let len = bytes.len();
-        
+
         if len < 3 || len > 47 {
             return false;
         }
-        
+
         unsafe {
             if *bytes.get_unchecked(0) != b'[' || *bytes.get_unchecked(len - 1) != b']' {
                 return false;
             }
 
             let ip_bytes = bytes.get_unchecked(1..len - 1);
-            
+
             if !fast_ip_precheck(ip_bytes) {
                 return false;
             }
@@ -267,11 +267,11 @@ impl EmailValidator {
     #[inline]
     fn find_last_at_position(bytes: &[u8]) -> Option<usize> {
         let len = bytes.len();
-        
+
         if len < MIN_EMAIL_LENGTH {
             return None;
         }
-        
+
         let mut pos = len;
         while pos > 1 {
             pos -= 1;
@@ -319,12 +319,12 @@ impl EmailValidator {
             }
         }
     }
-    
+
     #[inline]
     pub fn validate_str(email: &str) -> bool {
         Self::validate(email.as_bytes())
     }
-    
+
     #[inline]
     pub fn validate_string(email: &String) -> bool {
         Self::validate(email.as_bytes())

@@ -3,16 +3,16 @@
 #![allow(clippy::module_name_repetitions, clippy::inline_always)]
 
 pub mod constants;
+pub mod error;
+pub mod ip;
+pub mod traits;
 pub mod types;
 pub mod validator;
-pub mod traits;
-pub mod ip;
-pub mod error;
 
-pub use traits::ValidateEmail;
-pub use validator::EmailValidator;
-pub use types::ValidationResult;
 pub use error::EmailValidationError;
+pub use traits::ValidateEmail;
+pub use types::ValidationResult;
+pub use validator::EmailValidator;
 
 #[inline]
 pub fn validate_email(email: &str) -> bool {

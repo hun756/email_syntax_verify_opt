@@ -11,12 +11,12 @@ impl ValidationResult {
     pub const fn is_valid(self) -> bool {
         matches!(self, ValidationResult::Valid)
     }
-    
+
     #[inline(always)]
     pub const fn is_invalid(self) -> bool {
         matches!(self, ValidationResult::Invalid)
     }
-    
+
     #[inline(always)]
     pub const fn requires_idn_check(self) -> bool {
         matches!(self, ValidationResult::RequiresIdnCheck)
