@@ -59,7 +59,31 @@ impl EmailValidator {
     #[cold]
     #[inline(never)]
     fn validate_user_part_slow_path(bytes: &[u8]) -> bool {
-        bytes.iter().all(|&byte| byte <= 127 && Self::is_user_char(byte))
+        if bytes.is_empty() {
+            return false;
+        }
+
+        if bytes[0] == b'.' || bytes[bytes.len() - 1] == b'.' {
+            return false;
+        }
+
+        let mut prev_was_dot = false;
+        for &byte in bytes {
+            if byte > 127 || !Self::is_user_char(byte) {
+                return false;
+            }
+            
+            if byte == b'.' {
+                if prev_was_dot {
+                    return false;
+                }
+                prev_was_dot = true;
+            } else {
+                prev_was_dot = false;
+            }
+        }
+        
+        true
     }
 
     #[inline]
@@ -69,10 +93,15 @@ impl EmailValidator {
             return false;
         }
         
+        if bytes[0] == b'.' || bytes[len - 1] == b'.' {
+            return false;
+        }
+        
         if len < 8 {
             return Self::validate_user_part_slow_path(bytes);
         }
         
+        let mut prev_was_dot = false;
         let (chunks, remainder) = bytes.split_at(len & !7);
         
         for chunk in chunks.chunks_exact(8) {
@@ -83,12 +112,38 @@ impl EmailValidator {
                 }
             }
             
-            if !chunk.iter().all(|&byte| Self::is_user_char(byte)) {
-                return false;
+            for &byte in chunk {
+                if !Self::is_user_char(byte) {
+                    return false;
+                }
+                
+                if byte == b'.' {
+                    if prev_was_dot {
+                        return false;
+                    }
+                    prev_was_dot = true;
+                } else {
+                    prev_was_dot = false;
+                }
             }
         }
         
-        remainder.iter().all(|&byte| byte <= 127 && Self::is_user_char(byte))
+        for &byte in remainder {
+            if byte > 127 || !Self::is_user_char(byte) {
+                return false;
+            }
+            
+            if byte == b'.' {
+                if prev_was_dot {
+                    return false;
+                }
+                prev_was_dot = true;
+            } else {
+                prev_was_dot = false;
+            }
+        }
+        
+        true
     }
 
     #[inline]
@@ -137,15 +192,18 @@ impl EmailValidator {
             return ValidationResult::Invalid;
         }
 
+        if bytes[0] == b'.' || bytes[len - 1] == b'.' {
+            return ValidationResult::Invalid;
+        }
+
         let mut start = 0;
         let mut requires_idn = false;
-        let mut dot_count = 0;
+        let mut label_count = 0;
 
         for i in 0..len {
             unsafe {
                 if *bytes.get_unchecked(i) == b'.' {
-                    dot_count += 1;
-                    if dot_count > 127 {
+                    if i == start {
                         return ValidationResult::Invalid;
                     }
                     
@@ -156,21 +214,29 @@ impl EmailValidator {
                         ValidationResult::Valid => {}
                     }
                     start = i + 1;
+                    label_count += 1;
                 }
             }
         }
 
-        let final_label_result = unsafe { Self::validate_domain_label(bytes.get_unchecked(start..)) };
-        match final_label_result {
-            ValidationResult::Invalid => ValidationResult::Invalid,
-            ValidationResult::RequiresIdnCheck => ValidationResult::RequiresIdnCheck,
-            ValidationResult::Valid => {
-                if requires_idn {
-                    ValidationResult::RequiresIdnCheck
-                } else {
-                    ValidationResult::Valid
-                }
+        if start < len {
+            let final_label_result = unsafe { Self::validate_domain_label(bytes.get_unchecked(start..)) };
+            match final_label_result {
+                ValidationResult::Invalid => return ValidationResult::Invalid,
+                ValidationResult::RequiresIdnCheck => requires_idn = true,
+                ValidationResult::Valid => {}
             }
+            label_count += 1;
+        }
+
+        if label_count == 0 {
+            return ValidationResult::Invalid;
+        }
+
+        if requires_idn {
+            ValidationResult::RequiresIdnCheck
+        } else {
+            ValidationResult::Valid
         }
     }
 
