@@ -107,4 +107,4 @@ All benchmarks use Criterion.rs with:
 
 ## 📄 License
 
-MIT OR Apache-2.0
+MIT
