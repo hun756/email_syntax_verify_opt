@@ -4,10 +4,19 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Mehmet Sukru Ekemen <ekemenms@gmail.com>"]
 license = "MIT OR Apache-2.0"
-description = "Ultra-fast, zero-allocation email validation library"
+description = "Ultra-fast, zero-allocation email validation library optimized for enterprise production use"
 repository = "https://github.com/hun756/email_syntax_verify_opt"
-keywords = ["email", "validation", "performance", "zero-allocation"]
-categories = ["email", "parsing", "web-programming"]
+homepage = "https://github.com/hun756/email_syntax_verify_opt"
+documentation = "https://docs.rs/email_syntax_verify_opt"
+readme = "README.md"
+keywords = ["email", "validation", "performance", "zero-allocation", "rfc5322"]
+categories = ["email", "parsing", "web-programming", "no-std"]
+exclude = [
+    "benches/*",
+    "tests/*",
+    ".git*",
+    "target/*"
+]
 
 [dependencies]
 idna = { version = "0.5", default-features = false, features = ["alloc"] }
