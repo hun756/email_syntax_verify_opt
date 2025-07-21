@@ -2,6 +2,31 @@
 name = "email_syntax_verify_opt"
 version = "0.1.0"
 edition = "2021"
+authors = ["Mehmet Sukru Ekemen <ekemenms@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Ultra-fast, zero-allocation email validation library"
+repository = "https://github.com/hun756/email_syntax_verify_opt"
+keywords = ["email", "validation", "performance", "zero-allocation"]
+categories = ["email", "parsing", "web-programming"]
 
 [dependencies]
-idna = "0.5"
+idna = { version = "0.5", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+validator = { version = "0.18", features = ["derive"] }
+regex = "1.10"
+
+[[bench]]
+name = "email_validation"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.bench]
+inherits = "release"
+debug = true

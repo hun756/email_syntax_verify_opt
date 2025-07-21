@@ -1,47 +1,27 @@
-use std::borrow::Cow;
 use crate::validator::EmailValidator;
 
 pub trait ValidateEmail {
-    fn validate_email(&self) -> bool {
-        match self.as_email_string() {
-            Some(email) => EmailValidator::validate(email.as_bytes()),
-            None => true,
-        }
-    }
-
-    fn as_email_string(&self) -> Option<Cow<str>>;
+    fn validate_email(&self) -> bool;
 }
 
-
+impl ValidateEmail for str {
+    #[inline]
+    fn validate_email(&self) -> bool {
+        EmailValidator::validate_str(self)
+    }
+}
 
 impl ValidateEmail for String {
     #[inline]
-    fn as_email_string(&self) -> Option<Cow<str>> {
-        Some(Cow::Borrowed(self.as_str()))
+    fn validate_email(&self) -> bool {
+        EmailValidator::validate_string(self)
     }
 }
 
 impl ValidateEmail for &str {
     #[inline]
-    fn as_email_string(&self) -> Option<Cow<str>> {
-        Some(Cow::Borrowed(*self))
-    }
-}
-
-impl<'a> ValidateEmail for Cow<'a, str> {
-    #[inline]
-    fn as_email_string(&self) -> Option<Cow<str>> {
-        Some(self.clone())
-    }
-}
-
-impl<T> ValidateEmail for &T
-where
-    T: ValidateEmail,
-{
-    #[inline]
-    fn as_email_string(&self) -> Option<Cow<str>> {
-        T::as_email_string(self)
+    fn validate_email(&self) -> bool {
+        EmailValidator::validate_str(self)
     }
 }
 
@@ -50,7 +30,38 @@ where
     T: ValidateEmail,
 {
     #[inline]
-    fn as_email_string(&self) -> Option<Cow<str>> {
-        self.as_ref().and_then(T::as_email_string)
+    fn validate_email(&self) -> bool {
+        self.as_ref().map_or(true, |email| email.validate_email())
+    }
+}
+
+impl<T> ValidateEmail for Box<T>
+where
+    T: ValidateEmail,
+{
+    #[inline]
+    fn validate_email(&self) -> bool {
+        T::validate_email(self)
+    }
+}
+
+impl ValidateEmail for [u8] {
+    #[inline]
+    fn validate_email(&self) -> bool {
+        EmailValidator::validate(self)
+    }
+}
+
+impl ValidateEmail for &[u8] {
+    #[inline]
+    fn validate_email(&self) -> bool {
+        EmailValidator::validate(self)
+    }
+}
+
+impl ValidateEmail for Vec<u8> {
+    #[inline]
+    fn validate_email(&self) -> bool {
+        EmailValidator::validate(self)
     }
 }
