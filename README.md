@@ -19,20 +19,20 @@ Benchmarks performed on **AMD Ryzen 7 7800X3D (8-core)** processor:
 
 ### Validation Performance Comparison
 
-| Test Case | Our Validator | Validator Crate | Regex | Performance Gain |
-|-----------|---------------|-----------------|-------|------------------|
-| **Valid Emails (15 items)** | `310.94 ns` | `2.0242 µs` | `585.92 ns` | **6.5x faster** |
-| **Invalid Emails (16 items)** | `164.85 ns` | `5.1443 µs` | `363.16 ns` | **31x faster** |
-| **Realistic Emails (10 items)** | `242.67 ns` | `1.4587 µs` | `435.53 ns` | **6x faster** |
-| **Single Email** | `17.509 ns` | `132.44 ns` | `41.271 ns` | **7.5x faster** |
+| Test Case                       | Our Validator | Validator Crate | Regex       | Performance Gain |
+| ------------------------------- | ------------- | --------------- | ----------- | ---------------- |
+| **Valid Emails (15 items)**     | `310.94 ns`   | `2.0242 µs`     | `585.92 ns` | **6.5x faster**  |
+| **Invalid Emails (16 items)**   | `164.85 ns`   | `5.1443 µs`     | `363.16 ns` | **31x faster**   |
+| **Realistic Emails (10 items)** | `242.67 ns`   | `1.4587 µs`     | `435.53 ns` | **6x faster**    |
+| **Single Email**                | `17.509 ns`   | `132.44 ns`     | `41.271 ns` | **7.5x faster**  |
 
 ### Email Length Impact Analysis
 
-| Email Length | Our Validator | Validator Crate | Performance Gain |
-|--------------|---------------|-----------------|------------------|
-| **Short** (`a@b.co`) | `8.8229 ns` | `99.775 ns` | **11x faster** |
-| **Medium** (`user.name@example.com`) | `16.487 ns` | `135.29 ns` | **8x faster** |
-| **Long** (67 chars) | `46.331 ns` | `207.98 ns` | **4.5x faster** |
+| Email Length                         | Our Validator | Validator Crate | Performance Gain |
+| ------------------------------------ | ------------- | --------------- | ---------------- |
+| **Short** (`a@b.co`)                 | `8.8229 ns`   | `99.775 ns`     | **11x faster**   |
+| **Medium** (`user.name@example.com`) | `16.487 ns`   | `135.29 ns`     | **8x faster**    |
+| **Long** (67 chars)                  | `46.331 ns`   | `207.98 ns`     | **4.5x faster**  |
 
 ### Key Performance Highlights
 
@@ -100,6 +100,7 @@ Perfect for high-performance applications requiring:
 ## 🔬 Benchmark Details
 
 All benchmarks use Criterion.rs with:
+
 - 100 iterations per measurement
 - Statistical outlier detection
 - Warm-up cycles for CPU optimization
