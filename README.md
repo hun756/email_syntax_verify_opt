@@ -4,7 +4,7 @@ Ultra-fast, zero-allocation email validation library optimized for enterprise pr
 
 ## 🚀 Features
 
-- **Ultra-fast performance**: Optimized with SIMD operations, lookup tables, and unsafe optimizations
+- **Ultra-fast performance**: Optimized with lookup tables, and unsafe optimizations
 - **Zero allocations**: No heap allocations during validation
 - **Memory efficient**: Minimal memory footprint with static lookup tables
 - **Enterprise ready**: Production-tested with comprehensive error handling
